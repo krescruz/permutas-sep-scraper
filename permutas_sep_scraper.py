@@ -36,7 +36,24 @@ def getPages():
 		if 'paginacion' in params:
 			pages.append(params['paginacion'][0])
 
-	return pages
+	return distinct(pages)
+
+def distinct(seq, idfun=None): 
+   # order preserving
+   # Taken from: http://www.peterbe.com/plog/uniqifiers-benchmark
+   if idfun is None:
+       def idfun(x): return x
+   seen = {}
+   result = []
+   for item in seq:
+       marker = idfun(item)
+       # in old Python versions:
+       # if seen.has_key(marker)
+       # but in new ones:
+       if marker in seen: continue
+       seen[marker] = 1
+       result.append(item)
+   return result
 
 def scrape(page = 0):
 	"If not page specified, the function will scrape the last page, ordered by publication date in a descendent order"

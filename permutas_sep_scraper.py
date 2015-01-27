@@ -1,6 +1,7 @@
 import requests
 import bs4
 import urlparse
+from datetime import datetime
 
 class Post:
 	def __init__(self):
@@ -13,19 +14,17 @@ class Post:
 		self.message = ''
 
 base_url = 'http://www.tulibrodevisitas.com/libro.php?id=11014'
-response = None
 
-def doRequest():
-	global response
-	response = requests.get(base_url)
+def doRequest(url):
+	return requests.get(url)
 
-def getSoup():
-	if response is None:
-		doRequest()
+def getSoup(url):
+	response = doRequest(url)
 	return bs4.BeautifulSoup(response.text)
 
 def getPages():
-	soup = getSoup()
+
+	soup = getSoup(base_url)
 
 	pages = []
 
@@ -55,21 +54,36 @@ def distinct(seq, idfun=None):
        result.append(item)
    return result
 
-def scrape(page = 0):
-	"If not page specified, the function will scrape the last page, ordered by publication date in a descendent order"
+def scrape(page = -1):
+	"""If not page specified, the function will scrape the last page, ordered by publication date in a descendent order"""
 
-	
 	posts = []
+	soup = None
 
-	if page > 0:
-		base_url = base_url + '&paginacion=' + str(page)
+	if page < 0:
+		print 'get index'
+		soup = getSoup(base_url)
+		posts = scrapePage(soup)
+	elif page > 0:
+		print 'get page ' + str(page)
+		soup = getSoup(base_url + '&paginacion=' + str(page))
+		posts = scrapePage(soup)
+	else:
+		pages = getPages()
+		for page_ in pages:
+			soup = getSoup(base_url + '&paginacion=' + str(page_))
+			tempPosts = scrapePage(soup)
+			posts.extend(tempPosts)
 
-	soup = getSoup()		
+	f = open('post.txt','w')
+	for post in posts:
+		f.write(('USERNAME: ' + post.username + ', ' + 'STATETOORFROM: ' + post.stateToOrFrom + ', ' + 'GENRE: ' + post.genre + ', ' + 'WEBSITE: ' + post.website + ', ' + 'EMAIL: ' + post.email + ', ' + 'PUBLICATIONDATE: ' + post.publicationDate + ', ' + 'MESSAGE: ' + post.message + '\n').encode("utf-8"))
+	f.close()
 
-	for trs in soup.find_all('tr'):
-
-		if trs.has_attr('bgcolor') and (str(trs['bgcolor']) == '#CCCCCC' or str(trs['bgcolor']) == '#FFFFFF'):
-
+def scrapePage(soup):
+	posts = []
+	for trs in soup.find_all('tr', bgcolor = ['#CCCCCC', '#FFFFFF']):
+		
 			post = Post()
 
 			for span in trs.find_all('span'):
@@ -91,7 +105,6 @@ def scrape(page = 0):
 								post.genre = 'm'
 							else:
 								post.genre = 'u'
-
 							
 							for img in img_genre:
 
@@ -115,14 +128,10 @@ def scrape(page = 0):
 							post.publicationDate = strong.text
 
 			posts.append(post);
-
 	return posts
-	# for post in posts:
-	# 	print 'USERNAME: ' + post.username + ', ' + 'STATETOORFROM: ' + post.stateToOrFrom + ', ' + 'GENRE: ' + post.genre + ', ' + 'WEBSITE: ' + post.website + ', ' + 'EMAIL: ' + post.email + ', ' + 'PUBLICATIONDATE: ' + post.publicationDate + ', ' + 'MESSAGE: ' + post.message
 
-print getPages()
-print len(getPages())
-
-
+print datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+scrape()
+print datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 

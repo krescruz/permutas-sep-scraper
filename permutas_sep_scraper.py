@@ -1,6 +1,6 @@
 import requests
 import bs4
-
+import urlparse
 
 class Post:
 	def __init__(self):
@@ -12,17 +12,42 @@ class Post:
 		self.publicationDate = ''
 		self.message = ''
 
-def scrape(page):
+base_url = 'http://www.tulibrodevisitas.com/libro.php?id=11014'
+response = None
+
+def doRequest():
+	global response
+	response = requests.get(base_url)
+
+def getSoup():
+	if response is None:
+		doRequest()
+	return bs4.BeautifulSoup(response.text)
+
+def getPages():
+	soup = getSoup()
+
+	pages = []
+
+	for a in soup.find_all('a', title=""):
+		href = a['href']
+		url = urlparse.urlparse(href)
+		params = urlparse.parse_qs(url.query)
+		if 'paginacion' in params:
+			pages.append(params['paginacion'][0])
+
+	return pages
+
+def scrape(page = 0):
 	"If not page specified, the function will scrape the last page, ordered by publication date in a descendent order"
 
-	base_url = 'http://www.tulibrodevisitas.com/libro.php?id=11014'
+	
 	posts = []
 
 	if page > 0:
 		base_url = base_url + '&paginacion=' + str(page)
 
-	response = requests.get(base_url)
-	soup = bs4.BeautifulSoup(response.text)
+	soup = getSoup()		
 
 	for trs in soup.find_all('tr'):
 
@@ -61,8 +86,6 @@ def scrape(page):
 								if img['src'] == 'Images/libro_mail.gif':
 									post.email = img.parent['href'].replace('mailto:','').strip().lower()
 
-
-
 						# Get the title of the publication
 						if len(strong) != 1:
 							lines = strong.text.strip().split('-')
@@ -76,7 +99,13 @@ def scrape(page):
 
 			posts.append(post);
 
-	for post in posts:
-		print 'USERNAME: ' + post.username + ', ' + 'STATETOORFROM: ' + post.stateToOrFrom + ', ' + 'GENRE: ' + post.genre + ', ' + 'WEBSITE: ' + post.website + ', ' + 'EMAIL: ' + post.email + ', ' + 'PUBLICATIONDATE: ' + post.publicationDate + ', ' + 'MESSAGE: ' + post.message
+	return posts
+	# for post in posts:
+	# 	print 'USERNAME: ' + post.username + ', ' + 'STATETOORFROM: ' + post.stateToOrFrom + ', ' + 'GENRE: ' + post.genre + ', ' + 'WEBSITE: ' + post.website + ', ' + 'EMAIL: ' + post.email + ', ' + 'PUBLICATIONDATE: ' + post.publicationDate + ', ' + 'MESSAGE: ' + post.message
 
-scrape(99)
+print getPages()
+print len(getPages())
+
+
+
+

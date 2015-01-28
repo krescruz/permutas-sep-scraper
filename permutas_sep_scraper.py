@@ -57,17 +57,23 @@ def distinct(seq, idfun=None):
 def scrape(page = -1):
 	"""If not page specified, the function will scrape the last page, ordered by publication date in a descendent order"""
 
+
 	posts = []
 	soup = None
 
-	if page < 0:
+	if type(page) is int  and page < 0:
 		print 'get index'
 		soup = getSoup(base_url)
 		posts = scrapePage(soup)
-	elif page > 0:
+	elif type(page) is int  and page > 0:
 		print 'get page ' + str(page)
 		soup = getSoup(base_url + '&paginacion=' + str(page))
 		posts = scrapePage(soup)
+	elif type(page) is list:
+		for page_ in page:
+			soup = getSoup(base_url + '&paginacion=' + str(page_))
+			tempPosts = scrapePage(soup)
+			posts.extend(tempPosts)
 	else:
 		pages = getPages()
 		for page_ in pages:
@@ -130,7 +136,7 @@ def scrapePage(soup):
 	return posts
 
 print datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-scrape(0)
+scrape([0, 99])
 print datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 

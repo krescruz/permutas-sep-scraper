@@ -83,11 +83,10 @@ def scrape(page = -1):
 def scrapePage(soup):
 	posts = []
 	for trs in soup.find_all('tr', bgcolor = ['#CCCCCC', '#FFFFFF']):
-		
+
 			post = Post()
 
-			for span in trs.find_all('span'):
-				if span.has_attr('class') and str(span['class'] == 'Mensaje'):
+			for span in trs.find_all('span', class_ = 'Mensaje'):
 
 					msg = span.find_all()
 					if len(msg) == 0:
@@ -131,7 +130,7 @@ def scrapePage(soup):
 	return posts
 
 print datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-scrape()
+scrape(0)
 print datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 

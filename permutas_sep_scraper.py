@@ -1,7 +1,12 @@
 import requests
+import time
 import bs4
 import urlparse
+import locale
 from datetime import datetime
+
+locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+base_url = 'http://www.tulibrodevisitas.com/libro.php?id=11014'
 
 class Post:
 	def __init__(self):
@@ -12,8 +17,6 @@ class Post:
 		self.email = ''
 		self.publicationDate = ''
 		self.message = ''
-
-base_url = 'http://www.tulibrodevisitas.com/libro.php?id=11014'
 
 def doRequest(url):
 	return requests.get(url)
@@ -81,10 +84,12 @@ def scrape(page = -1):
 			tempPosts = scrapePage(soup)
 			posts.extend(tempPosts)
 
-	f = open('post.txt','w')
+	f = open('post.csv','w')
 	for post in posts:
-		f.write(('USERNAME: ' + post.username + ', ' + 'STATETOORFROM: ' + post.stateToOrFrom + ', ' + 'GENRE: ' + post.genre + ', ' + 'WEBSITE: ' + post.website + ', ' + 'EMAIL: ' + post.email + ', ' + 'PUBLICATIONDATE: ' + post.publicationDate + ', ' + 'MESSAGE: ' + post.message + '\n').encode("utf-8"))
+		f.write(('USERNAME: ' + post.username + '\t' + 'STATETOORFROM: ' + post.stateToOrFrom + '\t' + 'GENRE: ' + post.genre + '\t' + 'WEBSITE: ' + post.website + '\t' + 'EMAIL: ' + post.email + '\t' + 'PUBLICATIONDATE: ' + str(post.publicationDate) + '\t' + 'MESSAGE: ' + post.message + '\n').encode("utf-8"))
+		# f.write(('USERNAME: ' + post.username + ', ' + 'STATETOORFROM: ' + post.stateToOrFrom + ', ' + 'GENRE: ' + post.genre + ', ' + 'WEBSITE: ' + post.website + ', ' + 'EMAIL: ' + post.email + ', ' + 'PUBLICATIONDATE: ' + post.publicationDate + ', ' + 'MESSAGE: ' + post.message + '\n').encode("utf-8"))
 	f.close()
+	return posts
 
 def scrapePage(soup):
 	posts = []
@@ -130,13 +135,32 @@ def scrapePage(soup):
 							else:
 								post.username = strong.text.strip()
 						else:
-							post.publicationDate = strong.text
+							tempPublicationDate = strong.text.replace('de','', 1).replace('del','')
+							tempTimeAndDate = tempPublicationDate.strip().split('-')
+							post.publicationDate = time.strptime(str(tempTimeAndDate[0]).lower() + str(tempTimeAndDate[1]).replace(':',' ') , "%d %B %Y %H %M %S")
+
 
 			posts.append(post);
 	return posts
 
-print datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-scrape([0, 99])
-print datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+def getAllPosts():
+	return scrape(0)
+
+def getLastPosts():
+	return scrape()
+
+def searchByMessage(searchCriteria):
+
+	posts = []
+
+	tempPosts = scrape(0)
+	for post in tempPosts:
+		if searchCriteria.lower() in post.message.lower():
+			posts.append(post)
+
+	return posts
 
 
+
+
+searchByMessage('monterrey')

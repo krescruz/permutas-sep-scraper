@@ -160,7 +160,27 @@ def searchByMessage(searchCriteria):
 
 	return posts
 
+def searchByState(searchCriteria):
+	posts = []
 
+	tempPosts = scrape()
+	for post in tempPosts:
+		if searchCriteria.lower() in post.stateToOrFrom.lower():
+			posts.append(post)
 
+	for p in posts:
+		print p.message
 
-searchByMessage('monterrey')
+	return posts
+
+def scrapeAsync(secs):
+	counter = 0
+	f = open('scrape_sleep.txt','w')
+	while counter < 2:
+		counter += 1
+		for p in scrape(0):
+			f.write(str(p.email).encode("utf-8") + ' - ' + str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')).encode("utf-8") + '\n')
+		time.sleep(secs)
+	f.close()
+
+scrapeAsync(5)

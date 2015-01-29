@@ -1,36 +1,29 @@
-# import requests
-# import bs4
-# import urllib2
-# import urllib
-
-
-# user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0'
-# headers = {
-# 	'User-Agent' : user_agent
-# 	,'Cookie' : 'PHPSESSID=0521768992876edddfc8ef0430ebc432'
-# 	,'Host': 'www.tulibrodevisitas.com'
-# 	,'Accept' : 'image/png,image/*;q=0.8,*/*;q=0.5'
-# 	,'Connection' : 'keep-alive'
-# 	}
-
-
-# for i in range(3):
-# 	f = open('IMG' + str(i) + '.jpg','wb')
-# 	imgRequest = urllib2.Request("http://www.tulibrodevisitas.com/config/imagen_registro.php", headers=headers)
-# 	imgData = urllib2.urlopen(imgRequest).read()
-# 	f.write(imgData)
-# 	f.close()
-
-
-
+import requests
+import bs4
 import urllib2
+import urllib
 import cookielib
-import string
+from PIL import Image
+from StringIO import StringIO
+
+url = 'http://www.tulibrodevisitas.com/mensaje.php?id=11014'
+imgUrl = 'http://www.tulibrodevisitas.com/config/imagen_registro.php'
+
+# Create the first request for the form:
+r = requests.get(url)
+
+# Create the second request for the captcha image
+imgRequest = requests.get(imgUrl, cookies = r.cookies)
+
+# Save the image locally
+i = Image.open(StringIO(imgRequest.content))
+i.save("img.png", "PNG")
 
 
-
-def cook():
-    url="http://www.tulibrodevisitas.com"
+for i in range(3):
+    f = open('IMG' + str(i) + '.jpg','wb')
+    url = 'http://www.tulibrodevisitas.com/config/imagen_registro.php'
+    headers = { 'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:35.0) Gecko/20100101 Firefox/35.0' }
     cj = cookielib.LWPCookieJar()
     authinfo = urllib2.HTTPBasicAuthHandler()
     realm="realmName"
@@ -41,27 +34,9 @@ def cook():
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), authinfo)
     urllib2.install_opener(opener)
 
-    # Create request object
-    txheaders = { 'User-agent' : "Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)" }
-    try:
-        req = urllib2.Request(url, None, txheaders)
-        cj.add_cookie_header(req)
-        f = urllib2.urlopen(req)
+    req = urllib2.Request(url, headers=headers)
+    cj.add_cookie_header(req)
+    imgData = urllib2.urlopen(req).read()
 
-    except IOError, e:
-        print "Failed to open", url
-        if hasattr(e, 'code'):
-            print "Error code:", e.code
-
-    else:
-
-        # print f
-        # print f.read()
-        # print f.info()
-        f.close()
-        print 'Cookies:'
-        for index, cookie in enumerate(cj):
-            print index, " : ", cookie      
-        cj.save("cookies.lwp")	
-
-cook()
+    f.write(imgData)
+    f.close()

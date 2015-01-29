@@ -8,6 +8,7 @@ import urllib
 import cookielib
 import sys
 
+# Add a functionality to let the user only to enter the captha value
 
 urlPost = 'http://www.tulibrodevisitas.com/accion_firma.php?accion=nueva'
 urlForm = 'http://www.tulibrodevisitas.com/mensaje.php?id=11014'

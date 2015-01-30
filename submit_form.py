@@ -15,43 +15,47 @@ urlForm = 'http://www.tulibrodevisitas.com/mensaje.php?id=11014'
 urlImg = 'http://www.tulibrodevisitas.com/config/imagen_registro.php'
 
 
-def doPost(coookie_value, captcha):
+def doPost(cookie, captcha):
 	data = {
-		'nombre':'Jose Hernandez',
+		'nombre':'Flor Reyes',
 		'web':'',
-		'mail':'jose.hernandez@gmail.com',
-		'sexo':'hombre',
-		'lugar':'Nuevo Leon',
-		'mensaje':'Hola,+soy+del+estado+de+Veracruz,+busco+moverme+a+Monterrey, Nuevo Leon.',
+		'mail':'flor2339@hotmail.com',
+		'sexo':'mujer',
+		'lugar':'San Luis Potosi',
+		'mensaje':'Hola, busco moverme a Monterrey (area metropolitana). Trabajo en el municipio de Rio Verde, SLP. Contactarme al siguiente correo: flor2339@hotmail.com',
 		'img': captcha,
 		'id_libro':'11014'
 	}
 	
-	cookie = {
-		'PHPSESSID': coookie_value
+	cookies = {
+		'PHPSESSID': cookie
 	}
 
-	r = requests.post(urlPost, data = data, cookies=cookie)
-	print coookie_value
-	print captcha
+	r = requests.post(urlPost, data = data, cookies=cookies)
+	print r
 
 def getCookie():
+
     # Create the first request for the form:
     r = requests.get(urlForm)
-    
-    f = open('./cookies/' + str(r.cookies.get('PHPSESSID')) + '.txt','w')
-    f.close()
+    cookie = str(r.cookies.get('PHPSESSID'))
+
+    # f = open('./cookies/' + cookie + '.txt','w')
+    # f.close()
 
     # Create the second request for the captcha image
     imgRequest = requests.get(urlImg, cookies = r.cookies)
 
     # Save the image locally
     i = Image.open(StringIO(imgRequest.content))
-    i.save('./cookies/' + str(datetime.now().second) + str(datetime.now().microsecond) + ".png", "PNG")
+    i.save(str(datetime.now().second) + str(datetime.now().microsecond) + ".png", "PNG")
+
+    return cookie
 
 
-if len(sys.argv) == 1:
-	getCookie()
+def main():
+	cookie = getCookie()
+	captcha = raw_input("Enter captcha: ")
+	doPost(cookie, captcha)
 
-if len(sys.argv) == 3:
-	doPost(sys.argv[1], sys.argv[2])
+main()

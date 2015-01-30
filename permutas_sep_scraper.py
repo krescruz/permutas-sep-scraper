@@ -5,7 +5,7 @@ import urlparse
 import locale
 from datetime import datetime
 
-locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+# locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 base_url = 'http://www.tulibrodevisitas.com/libro.php?id=11014'
 
 class Post:
@@ -57,9 +57,8 @@ def distinct(seq, idfun=None):
        result.append(item)
    return result
 
-def scrape(page = -1):
+def scrapePage(page = -1):
 	"""If not page specified, the function will scrape the last page, ordered by publication date in a descendent order"""
-
 
 	posts = []
 	soup = None
@@ -67,21 +66,21 @@ def scrape(page = -1):
 	if type(page) is int  and page < 0:
 		print 'get index'
 		soup = getSoup(base_url)
-		posts = scrapePage(soup)
+		posts = scrape(soup)
 	elif type(page) is int  and page > 0:
 		print 'get page ' + str(page)
 		soup = getSoup(base_url + '&paginacion=' + str(page))
-		posts = scrapePage(soup)
+		posts = scrape(soup)
 	elif type(page) is list:
 		for page_ in page:
 			soup = getSoup(base_url + '&paginacion=' + str(page_))
-			tempPosts = scrapePage(soup)
+			tempPosts = scrape(soup)
 			posts.extend(tempPosts)
 	else:
 		pages = getPages()
 		for page_ in pages:
 			soup = getSoup(base_url + '&paginacion=' + str(page_))
-			tempPosts = scrapePage(soup)
+			tempPosts = scrape(soup)
 			posts.extend(tempPosts)
 
 	f = open('post.csv','w')
@@ -91,7 +90,7 @@ def scrape(page = -1):
 	f.close()
 	return posts
 
-def scrapePage(soup):
+def scrape(soup):
 	posts = []
 	for trs in soup.find_all('tr', bgcolor = ['#CCCCCC', '#FFFFFF']):
 
@@ -136,24 +135,26 @@ def scrapePage(soup):
 								post.username = strong.text.strip()
 						else:
 							tempPublicationDate = strong.text.replace('de','', 1).replace('del','')
-							tempTimeAndDate = tempPublicationDate.strip().split('-')
-							post.publicationDate = time.strptime(str(tempTimeAndDate[0]).lower() + str(tempTimeAndDate[1]).replace(':',' ') , "%d %B %Y %H %M %S")
+							# tempTimeAndDate = tempPublicationDate.strip().split('-')
+							# post.publicationDate = time.strptime(str(tempTimeAndDate[0]).lower() + str(tempTimeAndDate[1]).replace(':',' ') , "%d %B %Y %H %M %S")
+
+							post.publicationDate = tempPublicationDate
 
 
 			posts.append(post);
 	return posts
 
 def getAllPosts():
-	return scrape(0)
+	return scrapePage(0)
 
 def getLastPosts():
-	return scrape()
+	return scrapePage()
 
 def searchByMessage(searchCriteria):
 
 	posts = []
 
-	tempPosts = scrape(0)
+	tempPosts = scrapePage(0)
 	for post in tempPosts:
 		if searchCriteria.lower() in post.message.lower():
 			posts.append(post)
@@ -163,7 +164,7 @@ def searchByMessage(searchCriteria):
 def searchByState(searchCriteria):
 	posts = []
 
-	tempPosts = scrape()
+	tempPosts = scrapePage()
 	for post in tempPosts:
 		if searchCriteria.lower() in post.stateToOrFrom.lower():
 			posts.append(post)
@@ -172,15 +173,3 @@ def searchByState(searchCriteria):
 		print p.message
 
 	return posts
-
-def scrapeAsync(secs):
-	counter = 0
-	f = open('scrape_sleep.txt','w')
-	while counter < 2:
-		counter += 1
-		for p in scrape(0):
-			f.write(str(p.email).encode("utf-8") + ' - ' + str(datetime.now().strftime('%Y-%m-%d %H:%M:%S')).encode("utf-8") + '\n')
-		time.sleep(secs)
-	f.close()
-
-scrapeAsync(5)

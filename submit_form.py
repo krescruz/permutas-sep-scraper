@@ -14,48 +14,47 @@ urlPost = 'http://www.tulibrodevisitas.com/accion_firma.php?accion=nueva'
 urlForm = 'http://www.tulibrodevisitas.com/mensaje.php?id=11014'
 urlImg = 'http://www.tulibrodevisitas.com/config/imagen_registro.php'
 
+class Poster(object):
 
-def doPost(cookie, captcha):
-	data = {
-		'nombre':'Flor Reyes',
-		'web':'',
-		'mail':'flor2339@hotmail.com',
-		'sexo':'mujer',
-		'lugar':'San Luis Potosi',
-		'mensaje':'Hola, busco moverme a Monterrey (area metropolitana). Trabajo en el municipio de Rio Verde, SLP. Contactarme al siguiente correo: flor2339@hotmail.com',
-		'img': captcha,
-		'id_libro':'11014'
-	}
-	
-	cookies = {
-		'PHPSESSID': cookie
-	}
+	def doPost(self, cookie, captcha, data = []):
 
-	r = requests.post(urlPost, data = data, cookies=cookies)
-	print r
+		'''
+			The following data was used for testing purposes.
+			data = {
+				'nombre':'yourname',
+				'web':'www.example.com',
+				'mail':'email@example.com',
+				'sexo':'mujer', # 'mujer' | 'hombre' are the valid options
+				'lugar':'yourCity',
+				'mensaje':'yourMessage',
+				'img': captcha,
+				'id_libro':'11014'
+			}			
 
-def getCookie():
+		'''
+		cookies = {
+			'PHPSESSID': cookie
+		}
 
-    # Create the first request for the form:
-    r = requests.get(urlForm)
-    cookie = str(r.cookies.get('PHPSESSID'))
+		r = requests.post(urlPost, data = data, cookies=cookies)
 
-    # f = open('./cookies/' + cookie + '.txt','w')
-    # f.close()
+	def getCookie(self):
 
-    # Create the second request for the captcha image
-    imgRequest = requests.get(urlImg, cookies = r.cookies)
+	    # Create the first request for the form:
+	    r = requests.get(urlForm)
+	    cookie = str(r.cookies.get('PHPSESSID'))
 
-    # Save the image locally
-    i = Image.open(StringIO(imgRequest.content))
-    i.save(str(datetime.now().second) + str(datetime.now().microsecond) + ".png", "PNG")
+	    # Create the second request for the captcha image
+	    imgRequest = requests.get(urlImg, cookies = r.cookies)
 
-    return cookie
+	    # Save the image locally
+	    i = Image.open(StringIO(imgRequest.content))
+	    i.save(str(datetime.now().second) + str(datetime.now().microsecond) + ".png", "PNG")
+
+	    return cookie
 
 
 def main():
 	cookie = getCookie()
 	captcha = raw_input("Enter captcha: ")
 	doPost(cookie, captcha)
-
-main()

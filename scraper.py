@@ -1,11 +1,19 @@
-import requests
-import time
-import bs4
-import urlparse
-import locale
+import sys
 from datetime import datetime
+import time
 
-# locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+# Support for compatibility of packages with python 2.x python 3.x
+_version_py = sys.version_info[0]
+if _version_py == 2:
+	import urlparse
+	import urlparse.parse_qs
+elif _version_py == 3:
+	from urllib.parse import urlparse
+	from urllib.parse import parse_qs
+
+import requests
+import bs4
+
 base_url = 'http://www.tulibrodevisitas.com/libro.php?id=11014'
 
 class Post:
@@ -68,11 +76,9 @@ class Scraper(object):
 		soup = None
 
 		if type(page) is int  and page < 0:
-			print 'get index'
 			soup = self.getSoup(base_url)
 			posts = self.scrape(soup)
 		elif type(page) is int  and page > 0:
-			print 'get page ' + str(page)
 			soup = self.getSoup(base_url + '&paginacion=' + str(page))
 			posts = self.scrape(soup)
 		elif type(page) is list:

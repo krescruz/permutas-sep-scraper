@@ -45,8 +45,8 @@ class Scraper(object):
 
 		for a in soup.find_all('a', title=""):
 			href = a['href']
-			url = urlparse.urlparse(href)
-			params = urlparse.parse_qs(url.query)
+			url = urlparse(href)
+			params = parse_qs(url.query)
 			if 'paginacion' in params:
 				pages.append(params['paginacion'][0])
 

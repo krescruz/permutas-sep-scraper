@@ -14,9 +14,9 @@ elif _version_py == 3:
 import requests
 import bs4
 
-base_url = 'http://www.tulibrodevisitas.com/libro.php?id=11014'
+BASE_URL = 'http://www.tulibrodevisitas.com/libro.php?id=11014'
 
-class Post:
+class Post(object):
 	def __init__(self):
 		self.username = ''
 		self.stateToOrFrom =  ''
@@ -28,18 +28,18 @@ class Post:
 
 class Scraper(object):
 
-	def doRequest(self, url):
+	def _do_request(self, url):
 		return requests.get(url)
 
-	def getSoup(self, url):
+	def _get_soup(self, url):
 
 		# return bs4.BeautifulSoup(open("posts.html", "r").read())	
-		response = self.doRequest(url)
+		response = self._do_request(url)
 		return bs4.BeautifulSoup(response.text)
 
-	def getPages(self):
+	def _get_pages(self):
 
-		soup = self.getSoup(base_url)
+		soup = self._get_soup(BASE_URL)
 
 		pages = []
 
@@ -50,9 +50,9 @@ class Scraper(object):
 			if 'paginacion' in params:
 				pages.append(params['paginacion'][0])
 
-		return self.distinct(pages)
+		return self._distinct(pages)
 
-	def distinct(self, seq, idfun=None): 
+	def _distinct(self, seq, idfun=None): 
 	   # order preserving
 	   # Taken from: http://www.peterbe.com/plog/uniqifiers-benchmark
 	   if idfun is None:
@@ -69,33 +69,35 @@ class Scraper(object):
 	       result.append(item)
 	   return result
 
-	def scrapePage(self, page = -1):
-		"""If not page specified, the function will scrape the last page, ordered by publication date in a descendent order"""
-
+	def _scrape_page(self, page = -1):
+		"""
+		If not page specified, the function will scrape the last page,
+		ordered by publication date in a descendent order.
+		"""
 		posts = []
 		soup = None
 
 		if type(page) is int  and page < 0:
-			soup = self.getSoup(base_url)
-			posts = self.scrape(soup)
+			soup = self._get_soup(BASE_URL)
+			posts = self._scrape(soup)
 		elif type(page) is int  and page > 0:
-			soup = self.getSoup(base_url + '&paginacion=' + str(page))
-			posts = self.scrape(soup)
+			soup = self._get_soup(BASE_URL + '&paginacion=' + str(page))
+			posts = self._scrape(soup)
 		elif type(page) is list:
 			for page_ in page:
-				soup = self.getSoup(base_url + '&paginacion=' + str(page_))
-				tempPosts = self.scrape(soup)
+				soup = self._get_soup(BASE_URL + '&paginacion=' + str(page_))
+				tempPosts = self._scrape(soup)
 				posts.extend(tempPosts)
 		else:
-			pages = self.getPages()
+			pages = self._get_pages()
 			for page_ in pages:
-				soup = self.getSoup(base_url + '&paginacion=' + str(page_))
-				tempPosts = self.scrape(soup)
+				soup = self._get_soup(BASE_URL + '&paginacion=' + str(page_))
+				tempPosts = self._scrape(soup)
 				posts.extend(tempPosts)
 		
 		return posts
 
-	def scrape(self, soup):
+	def _scrape(self, soup):
 		posts = []
 		for trs in soup.find_all('tr', bgcolor = ['#CCCCCC', '#FFFFFF']):
 
@@ -149,27 +151,27 @@ class Scraper(object):
 				posts.append(post);
 		return posts
 
-	def getAllPosts(self):
-		return self.scrapePage(0)
+	def get_all_posts(self):
+		return self._scrape_page(0)
 
-	def getLastPosts(self):
-		return self.scrapePage()
+	def get_last_posts(self):
+		return self._scrape_page()
 
-	def searchByMessage(self, searchCriteria):
+	def search_by_message(self, searchCriteria):
 
 		posts = []
 
-		tempPosts = self.scrapePage(0)
+		tempPosts = self._scrape_page(0)
 		for post in tempPosts:
 			if searchCriteria.lower() in post.message.lower():
 				posts.append(post)
 
 		return posts
 
-	def searchByState(self, searchCriteria):
+	def search_by_state(self, searchCriteria):
 		posts = []
 
-		tempPosts = self.scrapePage()
+		tempPosts = self._scrape_page()
 		for post in tempPosts:
 			if searchCriteria.lower() in post.stateToOrFrom.lower():
 				posts.append(post)

@@ -1,6 +1,15 @@
+import sys
 from datetime import datetime
 import time
-import urlparse
+
+# Support for compatibility of packages with python 2.x python 3.x
+_version_py = sys.version_info[0]
+if _version_py == 2:
+	import urlparse
+	import urlparse.parse_qs
+elif _version_py == 3:
+	from urllib.parse import urlparse
+	from urllib.parse import parse_qs
 
 import requests
 import bs4
